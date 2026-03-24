@@ -1,0 +1,402 @@
+<mujoco model="boxing">
+  <!--
+    Two humanoid boxers facing each other, ~1.4m tall.
+    Each has 21 actuated hinge joints (shared action space).
+    Fist geoms are named *_fist_geom for contact detection.
+    Pelvis z=0.83 → feet just touch ground at z=0.
+  -->
+
+  <compiler angle="radian" inertiafromgeom="true"/>
+
+  <option timestep="0.005" gravity="0 0 -9.81" iterations="50" solver="PGS" cone="pyramidal"/>
+
+  <default>
+    <joint limited="true" armature="0.02" damping="1.5" stiffness="0"/>
+    <geom condim="3" friction="0.8 0.1 0.1" density="1000"/>
+    <position ctrllimited="true" ctrlrange="-1 1" kp="200"/>
+  </default>
+
+  <asset>
+    <texture name="texplane" type="2d" builtin="checker"
+             rgb1="0.25 0.28 0.32" rgb2="0.15 0.17 0.20"
+             width="512" height="512"/>
+    <material name="matplane" texture="texplane" texrepeat="6 6"
+              reflectance="0.15" shininess="0.1"/>
+    <!-- Fighter 0: blue tones -->
+    <material name="mat_b0_skin"  rgba="0.55 0.65 0.85 1"/>
+    <material name="mat_b0_limb"  rgba="0.40 0.50 0.75 1"/>
+    <material name="mat_b0_fist"  rgba="0.20 0.80 0.30 1"/>
+    <!-- Fighter 1: red tones -->
+    <material name="mat_b1_skin"  rgba="0.85 0.55 0.50 1"/>
+    <material name="mat_b1_limb"  rgba="0.75 0.40 0.38 1"/>
+    <material name="mat_b1_fist"  rgba="0.95 0.85 0.10 1"/>
+  </asset>
+
+  <worldbody>
+    <light directional="true" pos="-2 0 4" dir="1 0 -2" diffuse="0.8 0.8 0.8"/>
+    <light directional="true" pos=" 2 0 4" dir="-1 0 -2" diffuse="0.6 0.6 0.7"/>
+    <light pos="0 0 3" diffuse="0.4 0.4 0.4" castshadow="false"/>
+
+    <geom name="floor" type="plane" pos="0 0 0" size="8 8 0.1"
+          material="matplane" condim="3" friction="0.9 0.1 0.1"/>
+
+    <!-- ===================================================== -->
+    <!--  FIGHTER 0  –  starts at x=-0.75, facing +x           -->
+    <!-- ===================================================== -->
+    <body name="b0_pelvis" pos="-0.75 0 0.83">
+      <freejoint name="b0_root"/>
+      <geom name="b0_pelvis_geom" type="capsule"
+            fromto="0 -0.07 0 0 0.07 0" size="0.055"
+            material="mat_b0_skin"/>
+
+      <!-- ── TORSO ── -->
+      <body name="b0_torso" pos="0 0 0.20">
+        <joint name="b0_abdomen_y" type="hinge" axis="0 1 0"
+               pos="0 0 -0.10" range="-0.6 0.6"/>
+        <geom name="b0_torso_geom" type="capsule"
+              fromto="0 0 -0.14 0 0 0.16" size="0.065"
+              material="mat_b0_skin"/>
+
+        <!-- HEAD -->
+        <body name="b0_head" pos="0 0 0.30">
+          <geom name="b0_head_geom" type="sphere" size="0.09"
+                material="mat_b0_skin"/>
+        </body>
+
+        <!-- ── LEFT ARM (fighter's left = global +y side) ── -->
+        <body name="b0_left_upper_arm" pos="0 0.17 0.08">
+          <joint name="b0_left_shoulder_x" type="hinge" axis="1 0 0"
+                 range="-1.8 1.8"/>
+          <joint name="b0_left_shoulder_y" type="hinge" axis="0 1 0"
+                 range="-1.8 1.8"/>
+          <joint name="b0_left_shoulder_z" type="hinge" axis="0 0 1"
+                 range="-1.2 1.2"/>
+          <geom name="b0_left_upper_arm_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.24" size="0.038"
+                material="mat_b0_limb"/>
+
+          <body name="b0_left_lower_arm" pos="0 0 -0.24">
+            <joint name="b0_left_elbow" type="hinge" axis="0 1 0"
+                   range="-2.6 0.0"/>
+            <geom name="b0_left_lower_arm_geom" type="capsule"
+                  fromto="0 0 0 0 0 -0.20" size="0.030"
+                  material="mat_b0_limb"/>
+
+            <body name="b0_left_fist" pos="0 0 -0.22">
+              <geom name="b0_left_fist_geom" type="sphere" size="0.046"
+                    material="mat_b0_fist"/>
+            </body>
+          </body>
+        </body>
+
+        <!-- ── RIGHT ARM (fighter's right = global -y side) ── -->
+        <body name="b0_right_upper_arm" pos="0 -0.17 0.08">
+          <joint name="b0_right_shoulder_x" type="hinge" axis="1 0 0"
+                 range="-1.8 1.8"/>
+          <joint name="b0_right_shoulder_y" type="hinge" axis="0 1 0"
+                 range="-1.8 1.8"/>
+          <joint name="b0_right_shoulder_z" type="hinge" axis="0 0 1"
+                 range="-1.2 1.2"/>
+          <geom name="b0_right_upper_arm_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.24" size="0.038"
+                material="mat_b0_limb"/>
+
+          <body name="b0_right_lower_arm" pos="0 0 -0.24">
+            <joint name="b0_right_elbow" type="hinge" axis="0 1 0"
+                   range="-2.6 0.0"/>
+            <geom name="b0_right_lower_arm_geom" type="capsule"
+                  fromto="0 0 0 0 0 -0.20" size="0.030"
+                  material="mat_b0_limb"/>
+
+            <body name="b0_right_fist" pos="0 0 -0.22">
+              <geom name="b0_right_fist_geom" type="sphere" size="0.046"
+                    material="mat_b0_fist"/>
+            </body>
+          </body>
+        </body>
+      </body><!-- /b0_torso -->
+
+      <!-- ── LEFT LEG ── -->
+      <body name="b0_left_thigh" pos="0 0.09 -0.05">
+        <joint name="b0_left_hip_x" type="hinge" axis="1 0 0"
+               range="-0.6 0.6"/>
+        <joint name="b0_left_hip_y" type="hinge" axis="0 1 0"
+               range="-1.2 0.9"/>
+        <joint name="b0_left_hip_z" type="hinge" axis="0 0 1"
+               range="-0.6 0.6"/>
+        <geom name="b0_left_thigh_geom" type="capsule"
+              fromto="0 0 0 0 0 -0.38" size="0.050"
+              material="mat_b0_limb"/>
+
+        <body name="b0_left_shin" pos="0 0 -0.38">
+          <joint name="b0_left_knee" type="hinge" axis="0 1 0"
+                 range="-2.0 0.05"/>
+          <geom name="b0_left_shin_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.32" size="0.040"
+                material="mat_b0_limb"/>
+
+          <body name="b0_left_foot" pos="0 0 -0.32">
+            <joint name="b0_left_ankle_x" type="hinge" axis="1 0 0"
+                   range="-0.6 0.6"/>
+            <joint name="b0_left_ankle_y" type="hinge" axis="0 1 0"
+                   range="-0.8 0.6"/>
+            <geom name="b0_left_foot_geom" type="capsule"
+                  fromto="-0.04 0 0 0.18 0 -0.05" size="0.032"
+                  material="mat_b0_limb"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- ── RIGHT LEG ── -->
+      <body name="b0_right_thigh" pos="0 -0.09 -0.05">
+        <joint name="b0_right_hip_x" type="hinge" axis="1 0 0"
+               range="-0.6 0.6"/>
+        <joint name="b0_right_hip_y" type="hinge" axis="0 1 0"
+               range="-1.2 0.9"/>
+        <joint name="b0_right_hip_z" type="hinge" axis="0 0 1"
+               range="-0.6 0.6"/>
+        <geom name="b0_right_thigh_geom" type="capsule"
+              fromto="0 0 0 0 0 -0.38" size="0.050"
+              material="mat_b0_limb"/>
+
+        <body name="b0_right_shin" pos="0 0 -0.38">
+          <joint name="b0_right_knee" type="hinge" axis="0 1 0"
+                 range="-2.0 0.05"/>
+          <geom name="b0_right_shin_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.32" size="0.040"
+                material="mat_b0_limb"/>
+
+          <body name="b0_right_foot" pos="0 0 -0.32">
+            <joint name="b0_right_ankle_x" type="hinge" axis="1 0 0"
+                   range="-0.6 0.6"/>
+            <joint name="b0_right_ankle_y" type="hinge" axis="0 1 0"
+                   range="-0.8 0.6"/>
+            <geom name="b0_right_foot_geom" type="capsule"
+                  fromto="-0.04 0 0 0.18 0 -0.05" size="0.032"
+                  material="mat_b0_limb"/>
+          </body>
+        </body>
+      </body>
+    </body><!-- /b0_pelvis -->
+
+    <!-- ===================================================== -->
+    <!--  FIGHTER 1  –  starts at x=+0.75, facing -x (180° z) -->
+    <!-- ===================================================== -->
+    <body name="b1_pelvis" pos="0.75 0 0.83" euler="0 0 3.14159265">
+      <freejoint name="b1_root"/>
+      <geom name="b1_pelvis_geom" type="capsule"
+            fromto="0 -0.07 0 0 0.07 0" size="0.055"
+            material="mat_b1_skin"/>
+
+      <!-- ── TORSO ── -->
+      <body name="b1_torso" pos="0 0 0.20">
+        <joint name="b1_abdomen_y" type="hinge" axis="0 1 0"
+               pos="0 0 -0.10" range="-0.6 0.6"/>
+        <geom name="b1_torso_geom" type="capsule"
+              fromto="0 0 -0.14 0 0 0.16" size="0.065"
+              material="mat_b1_skin"/>
+
+        <!-- HEAD -->
+        <body name="b1_head" pos="0 0 0.30">
+          <geom name="b1_head_geom" type="sphere" size="0.09"
+                material="mat_b1_skin"/>
+        </body>
+
+        <!-- ── LEFT ARM ── -->
+        <body name="b1_left_upper_arm" pos="0 0.17 0.08">
+          <joint name="b1_left_shoulder_x" type="hinge" axis="1 0 0"
+                 range="-1.8 1.8"/>
+          <joint name="b1_left_shoulder_y" type="hinge" axis="0 1 0"
+                 range="-1.8 1.8"/>
+          <joint name="b1_left_shoulder_z" type="hinge" axis="0 0 1"
+                 range="-1.2 1.2"/>
+          <geom name="b1_left_upper_arm_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.24" size="0.038"
+                material="mat_b1_limb"/>
+
+          <body name="b1_left_lower_arm" pos="0 0 -0.24">
+            <joint name="b1_left_elbow" type="hinge" axis="0 1 0"
+                   range="-2.6 0.0"/>
+            <geom name="b1_left_lower_arm_geom" type="capsule"
+                  fromto="0 0 0 0 0 -0.20" size="0.030"
+                  material="mat_b1_limb"/>
+
+            <body name="b1_left_fist" pos="0 0 -0.22">
+              <geom name="b1_left_fist_geom" type="sphere" size="0.046"
+                    material="mat_b1_fist"/>
+            </body>
+          </body>
+        </body>
+
+        <!-- ── RIGHT ARM ── -->
+        <body name="b1_right_upper_arm" pos="0 -0.17 0.08">
+          <joint name="b1_right_shoulder_x" type="hinge" axis="1 0 0"
+                 range="-1.8 1.8"/>
+          <joint name="b1_right_shoulder_y" type="hinge" axis="0 1 0"
+                 range="-1.8 1.8"/>
+          <joint name="b1_right_shoulder_z" type="hinge" axis="0 0 1"
+                 range="-1.2 1.2"/>
+          <geom name="b1_right_upper_arm_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.24" size="0.038"
+                material="mat_b1_limb"/>
+
+          <body name="b1_right_lower_arm" pos="0 0 -0.24">
+            <joint name="b1_right_elbow" type="hinge" axis="0 1 0"
+                   range="-2.6 0.0"/>
+            <geom name="b1_right_lower_arm_geom" type="capsule"
+                  fromto="0 0 0 0 0 -0.20" size="0.030"
+                  material="mat_b1_limb"/>
+
+            <body name="b1_right_fist" pos="0 0 -0.22">
+              <geom name="b1_right_fist_geom" type="sphere" size="0.046"
+                    material="mat_b1_fist"/>
+            </body>
+          </body>
+        </body>
+      </body><!-- /b1_torso -->
+
+      <!-- ── LEFT LEG ── -->
+      <body name="b1_left_thigh" pos="0 0.09 -0.05">
+        <joint name="b1_left_hip_x" type="hinge" axis="1 0 0"
+               range="-0.6 0.6"/>
+        <joint name="b1_left_hip_y" type="hinge" axis="0 1 0"
+               range="-1.2 0.9"/>
+        <joint name="b1_left_hip_z" type="hinge" axis="0 0 1"
+               range="-0.6 0.6"/>
+        <geom name="b1_left_thigh_geom" type="capsule"
+              fromto="0 0 0 0 0 -0.38" size="0.050"
+              material="mat_b1_limb"/>
+
+        <body name="b1_left_shin" pos="0 0 -0.38">
+          <joint name="b1_left_knee" type="hinge" axis="0 1 0"
+                 range="-2.0 0.05"/>
+          <geom name="b1_left_shin_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.32" size="0.040"
+                material="mat_b1_limb"/>
+
+          <body name="b1_left_foot" pos="0 0 -0.32">
+            <joint name="b1_left_ankle_x" type="hinge" axis="1 0 0"
+                   range="-0.6 0.6"/>
+            <joint name="b1_left_ankle_y" type="hinge" axis="0 1 0"
+                   range="-0.8 0.6"/>
+            <geom name="b1_left_foot_geom" type="capsule"
+                  fromto="-0.04 0 0 0.18 0 -0.05" size="0.032"
+                  material="mat_b1_limb"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- ── RIGHT LEG ── -->
+      <body name="b1_right_thigh" pos="0 -0.09 -0.05">
+        <joint name="b1_right_hip_x" type="hinge" axis="1 0 0"
+               range="-0.6 0.6"/>
+        <joint name="b1_right_hip_y" type="hinge" axis="0 1 0"
+               range="-1.2 0.9"/>
+        <joint name="b1_right_hip_z" type="hinge" axis="0 0 1"
+               range="-0.6 0.6"/>
+        <geom name="b1_right_thigh_geom" type="capsule"
+              fromto="0 0 0 0 0 -0.38" size="0.050"
+              material="mat_b1_limb"/>
+
+        <body name="b1_right_shin" pos="0 0 -0.38">
+          <joint name="b1_right_knee" type="hinge" axis="0 1 0"
+                 range="-2.0 0.05"/>
+          <geom name="b1_right_shin_geom" type="capsule"
+                fromto="0 0 0 0 0 -0.32" size="0.040"
+                material="mat_b1_limb"/>
+
+          <body name="b1_right_foot" pos="0 0 -0.32">
+            <joint name="b1_right_ankle_x" type="hinge" axis="1 0 0"
+                   range="-0.6 0.6"/>
+            <joint name="b1_right_ankle_y" type="hinge" axis="0 1 0"
+                   range="-0.8 0.6"/>
+            <geom name="b1_right_foot_geom" type="capsule"
+                  fromto="-0.04 0 0 0.18 0 -0.05" size="0.032"
+                  material="mat_b1_limb"/>
+          </body>
+        </body>
+      </body>
+    </body><!-- /b1_pelvis -->
+
+  </worldbody>
+
+  <!-- ============================================================ -->
+  <!--  ACTUATORS  –  21 per fighter, total 42                      -->
+  <!--  Order per fighter (matches action_space dim 0-20):          -->
+  <!--   0  abdomen_y                                               -->
+  <!--   1  left_hip_x   2  left_hip_y   3  left_hip_z             -->
+  <!--   4  left_knee                                               -->
+  <!--   5  left_ankle_x 6  left_ankle_y                           -->
+  <!--   7  right_hip_x  8  right_hip_y  9  right_hip_z            -->
+  <!--  10  right_knee                                              -->
+  <!--  11  right_ankle_x 12 right_ankle_y                         -->
+  <!--  13  left_shoulder_x 14 left_shoulder_y 15 left_shoulder_z  -->
+  <!--  16  left_elbow                                              -->
+  <!--  17  right_shoulder_x 18 right_shoulder_y 19 right_shoulder_z-->
+  <!--  20  right_elbow                                             -->
+  <!-- ============================================================ -->
+  <!--
+    Position actuators: ctrl = target joint angle (radians).
+    PD controller: torque = kp*(target - current) - kd*velocity.
+    ctrl=0 -> zero-angle = upright standing, maintained automatically.
+  -->
+  <!-- fist-thigh 자기충돌 제거: 초기 자세에서 팔이 다리를 밀어 불안정 유발 방지 -->
+  <contact>
+    <exclude body1="b0_left_fist"  body2="b0_left_thigh"/>
+    <exclude body1="b0_left_fist"  body2="b0_right_thigh"/>
+    <exclude body1="b0_right_fist" body2="b0_left_thigh"/>
+    <exclude body1="b0_right_fist" body2="b0_right_thigh"/>
+    <exclude body1="b1_left_fist"  body2="b1_left_thigh"/>
+    <exclude body1="b1_left_fist"  body2="b1_right_thigh"/>
+    <exclude body1="b1_right_fist" body2="b1_left_thigh"/>
+    <exclude body1="b1_right_fist" body2="b1_right_thigh"/>
+  </contact>
+
+  <actuator>
+    <!-- Fighter 0 -->
+    <position name="b0_abdomen_y"        joint="b0_abdomen_y"        kp="200" ctrlrange="-0.5  0.5"/>
+    <position name="b0_left_hip_x"       joint="b0_left_hip_x"       kp="150" ctrlrange="-0.5  0.5"/>
+    <position name="b0_left_hip_y"       joint="b0_left_hip_y"       kp="150" ctrlrange="-1.0  0.8"/>
+    <position name="b0_left_hip_z"       joint="b0_left_hip_z"       kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b0_left_knee"        joint="b0_left_knee"         kp="150" ctrlrange="-2.0  0.0"/>
+    <position name="b0_left_ankle_x"     joint="b0_left_ankle_x"     kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b0_left_ankle_y"     joint="b0_left_ankle_y"     kp="100" ctrlrange="-0.8  0.6"/>
+    <position name="b0_right_hip_x"      joint="b0_right_hip_x"      kp="150" ctrlrange="-0.5  0.5"/>
+    <position name="b0_right_hip_y"      joint="b0_right_hip_y"      kp="150" ctrlrange="-1.0  0.8"/>
+    <position name="b0_right_hip_z"      joint="b0_right_hip_z"      kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b0_right_knee"       joint="b0_right_knee"        kp="150" ctrlrange="-2.0  0.0"/>
+    <position name="b0_right_ankle_x"    joint="b0_right_ankle_x"    kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b0_right_ankle_y"    joint="b0_right_ankle_y"    kp="100" ctrlrange="-0.8  0.6"/>
+    <position name="b0_left_shoulder_x"  joint="b0_left_shoulder_x"  kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b0_left_shoulder_y"  joint="b0_left_shoulder_y"  kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b0_left_shoulder_z"  joint="b0_left_shoulder_z"  kp="80"  ctrlrange="-1.5  1.5"/>
+    <position name="b0_left_elbow"       joint="b0_left_elbow"        kp="80"  ctrlrange="-2.5  0.0"/>
+    <position name="b0_right_shoulder_x" joint="b0_right_shoulder_x" kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b0_right_shoulder_y" joint="b0_right_shoulder_y" kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b0_right_shoulder_z" joint="b0_right_shoulder_z" kp="80"  ctrlrange="-1.5  1.5"/>
+    <position name="b0_right_elbow"      joint="b0_right_elbow"       kp="80"  ctrlrange="-2.5  0.0"/>
+    <!-- Fighter 1 -->
+    <position name="b1_abdomen_y"        joint="b1_abdomen_y"        kp="200" ctrlrange="-0.5  0.5"/>
+    <position name="b1_left_hip_x"       joint="b1_left_hip_x"       kp="150" ctrlrange="-0.5  0.5"/>
+    <position name="b1_left_hip_y"       joint="b1_left_hip_y"       kp="150" ctrlrange="-1.0  0.8"/>
+    <position name="b1_left_hip_z"       joint="b1_left_hip_z"       kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b1_left_knee"        joint="b1_left_knee"         kp="150" ctrlrange="-2.0  0.0"/>
+    <position name="b1_left_ankle_x"     joint="b1_left_ankle_x"     kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b1_left_ankle_y"     joint="b1_left_ankle_y"     kp="100" ctrlrange="-0.8  0.6"/>
+    <position name="b1_right_hip_x"      joint="b1_right_hip_x"      kp="150" ctrlrange="-0.5  0.5"/>
+    <position name="b1_right_hip_y"      joint="b1_right_hip_y"      kp="150" ctrlrange="-1.0  0.8"/>
+    <position name="b1_right_hip_z"      joint="b1_right_hip_z"      kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b1_right_knee"       joint="b1_right_knee"        kp="150" ctrlrange="-2.0  0.0"/>
+    <position name="b1_right_ankle_x"    joint="b1_right_ankle_x"    kp="100" ctrlrange="-0.5  0.5"/>
+    <position name="b1_right_ankle_y"    joint="b1_right_ankle_y"    kp="100" ctrlrange="-0.8  0.6"/>
+    <position name="b1_left_shoulder_x"  joint="b1_left_shoulder_x"  kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b1_left_shoulder_y"  joint="b1_left_shoulder_y"  kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b1_left_shoulder_z"  joint="b1_left_shoulder_z"  kp="80"  ctrlrange="-1.5  1.5"/>
+    <position name="b1_left_elbow"       joint="b1_left_elbow"        kp="80"  ctrlrange="-2.5  0.0"/>
+    <position name="b1_right_shoulder_x" joint="b1_right_shoulder_x" kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b1_right_shoulder_y" joint="b1_right_shoulder_y" kp="100" ctrlrange="-1.5  1.5"/>
+    <position name="b1_right_shoulder_z" joint="b1_right_shoulder_z" kp="80"  ctrlrange="-1.5  1.5"/>
+    <position name="b1_right_elbow"      joint="b1_right_elbow"       kp="80"  ctrlrange="-2.5  0.0"/>
+  </actuator>
+
+</mujoco>
